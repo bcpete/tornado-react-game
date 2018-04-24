@@ -6,19 +6,19 @@ export default class MainPage extends React.Component {
   constructor(props){
     super(props)
     this.state = {
-      message: ''
+      'game_id' : '',
+      'type' : ''
     }
 
   }
 
   componentDidMount(){
     ws.onopen = () => {
-      ws.send('Hello World');
-      console.log(ws)
+      console.log('socket opened')
     };
 
     ws.onmessage = (message) => {
-      this.setState(({ message: message.data }));
+      console.log(message.type, message.data)
     }
   }
 
@@ -29,13 +29,42 @@ export default class MainPage extends React.Component {
     ws.send(input);
   }
 
+  createNewGame = (e) => {
+    e.preventDefault();
+
+    const message = {
+      type: "new-game"
+    }
+
+    ws.send(JSON.stringify(message));
+  }
+
+  handleJoinGame = (e) => {
+    e.preventDefault();
+
+    const game_id = e.target.elements.game_id.value.trim();
+    const join_game = {
+      'type' : 'join_game',
+      game_id
+    }
+
+    ws.send(JSON.stringify(join_game));
+  }
+
   render(){
     return (
       <div>
-        <p>{this.state.message}</p>
+        <p></p>
         <form onSubmit={this.handleSendMessage}>
           <input type="text" name="input" />
           <button>Send Message</button>
+        </form>
+        <form onSubmit={this.createNewGame}>
+          <button>Create new game!</button>
+        </form>
+        <form onSubmit={this.handleJoinGame}>
+          <input type="text" name="game_id"/>
+          <button>Join Game!</button>
         </form>
       </div>
     )
