@@ -1,7 +1,7 @@
 from tornado import ioloop, web, websocket
 import json
-games = {}
-
+from gamemaster import GameMaster
+gamemaster = GameMaster()
 
 class EchoWebSocket(websocket.WebSocketHandler):
 
@@ -21,22 +21,17 @@ class EchoWebSocket(websocket.WebSocketHandler):
         type = data.get("type", "")
         
         if type == "new-game":
-            self.game_id = 1
-            games[self.game_id] = {
-                'player_1' : self
-            }
-            self.send_message(type='waiting', game_id=self.game_id)
+            game_id = gamemaster.create_game(self)
+            self.send_message(type='new-game', game_id=game_id)
         
         elif type == "join_game":
             game_id = int(data.get('game_id'))
-            game = games.get(game_id)
-            if game.get('player_2') is None:
-                self.game_id = game_id
-                game['player_2'] = self
-                self.send_message(type="joined_game", game_id=self.game_id)
-                game.get('player_1').send_message(type="joined_game", message="player 2 joined!")
-            else:
-                self.send_message(type="error", message="invalid game id")
+            game_to_join = gamemaster.join_game(game_id, self)
+            if game_to_join:
+                game = gamemaster.get_game(game_to_join)
+                self.broadcast_message(type="joined_game", game_id=self.game_to_join)
+            game.get('player_1').send_message(type="joined_game", message="player 2 joined!")
+            self.send_message(type="error", message="invalid game id")
 
 
     def on_close(self):
@@ -48,6 +43,13 @@ class EchoWebSocket(websocket.WebSocketHandler):
             "data" : data
         }
         self.write_message(json.dumps(message))
+
+    def broadcast_message(self, type, game_id, **data):
+        self.send_message(type=type, **data)
+        player_2 = game.get('player_2')
+
+        player_1.send_message(type=type, **data)
+        player_2.send_message(type=type, **data)
 
 def make_app():
     return web.Application([
