@@ -28,10 +28,9 @@ class EchoWebSocket(websocket.WebSocketHandler):
             game_id = int(data.get('game_id'))
             game_to_join = gamemaster.join_game(game_id, self)
             if game_to_join:
-                game = gamemaster.get_game(game_to_join)
-                self.broadcast_message(type="joined_game", game_id=self.game_to_join)
-            game.get('player_1').send_message(type="joined_game", message="player 2 joined!")
-            self.send_message(type="error", message="invalid game id")
+                self.broadcast_message(type="joined_game", game_id=game_to_join, message="Player has joined game #{}".format(game_id))
+            else:
+                self.send_message(type="error", message="invalid game id")
 
 
     def on_close(self):
@@ -44,12 +43,10 @@ class EchoWebSocket(websocket.WebSocketHandler):
         }
         self.write_message(json.dumps(message))
 
-    def broadcast_message(self, type, game_id, **data):
-        self.send_message(type=type, **data)
-        player_2 = game.get('player_2')
-
-        player_1.send_message(type=type, **data)
-        player_2.send_message(type=type, **data)
+    def broadcast_message(self, type, **data):
+        opponent = gamemaster.get_opponent(data['game_id'], self)
+        opponent.send_message(type, **data)
+        self.send_message(type, **data)
 
 def make_app():
     return web.Application([

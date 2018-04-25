@@ -23,12 +23,13 @@ class GameMaster(object):
         game = self.games.get(game_id)
         if game:
             if game.get('player_2') == None:
-                game['player_2'] == player_2
-                return game.game_id
+                game['player_2'] = player_2
+                return game_id
         return None
 
     def get_opponent(self, game_id, player):
         game = self.games.get(game_id)
+        print(game)
         if game.get('player_1') == player:
             return game.get('player_2')
         else:
