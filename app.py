@@ -32,6 +32,15 @@ class EchoWebSocket(websocket.WebSocketHandler):
             else:
                 self.send_message(type="error", message="invalid game id")
 
+        elif type == "make_move":
+            game_id = int(data.get('game_id'))
+            move = int(data.get('move'))
+            game = gamemaster.get_game(game_id)
+            if game.get('player_1') == self:
+                self.broadcast_message(type="move", move=move, player="player_1", game_id=game_id)
+            else: 
+                self.broadcast_message(type="move", move=move, player="player_2", game_id=game_id)
+
 
     def on_close(self):
         print('websocket closed')

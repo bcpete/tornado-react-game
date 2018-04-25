@@ -6,8 +6,7 @@ export default class MainPage extends React.Component {
   constructor(props){
     super(props)
     this.state = {
-      'game_id' : '',
-      'type' : ''
+      game_id: 0
     }
 
   }
@@ -15,10 +14,17 @@ export default class MainPage extends React.Component {
   componentDidMount(){
     ws.onopen = () => {
       console.log('socket opened')
+      console.log(this.state.game_id)
     };
 
     ws.onmessage = (message) => {
-      console.log(message.type, message.data)
+      const data = JSON.parse(message.data)
+      this.setState(({ game_id : data.data.game_id }))
+      console.log("type: " + data.type)
+      console.log("game_id: " + data.data.game_id)
+      console.log("move: " + data.data.move)
+      console.log("player: " + data.data.player)
+      console.log("message: " + data.data.message)
     }
   }
 
@@ -44,11 +50,23 @@ export default class MainPage extends React.Component {
 
     const game_id = e.target.elements.game_id.value.trim();
     const join_game = {
-      'type' : 'join_game',
+      type : 'join_game',
       game_id
     }
 
     ws.send(JSON.stringify(join_game));
+  }
+
+  handlePlayerMove = (e) => {
+    e.preventDefault();
+
+    const move = {
+      type: 'make_move',
+      game_id: this.state.game_id,
+      move: 5
+    }
+
+    ws.send(JSON.stringify(move));
   }
 
   render(){
@@ -65,6 +83,9 @@ export default class MainPage extends React.Component {
         <form onSubmit={this.handleJoinGame}>
           <input type="text" name="game_id"/>
           <button>Join Game!</button>
+        </form>
+        <form onSubmit={this.handlePlayerMove}>
+          <button>Move</button>
         </form>
       </div>
     )
