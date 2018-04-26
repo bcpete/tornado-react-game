@@ -13,7 +13,11 @@ class EchoWebSocket(websocket.WebSocketHandler):
         return True
     
     def open(self):
-        self.send_message(type="open", message="Connected to game server.")
+        print('socket opened')
+        games = []
+        for game in gamemaster.games:
+            games.append(game)
+        self.send_message(type="open-games", games=games)
 
     def on_message(self, message):
         data = json.loads(message)

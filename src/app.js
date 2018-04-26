@@ -1,9 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import Test from './components/Test';
+import MainPage from './components/MainPage';
 import 'normalize.css/normalize.css';
 import './styles/styles.scss';
 
 
 
-ReactDOM.render(<Test />, document.getElementById('app'));
+ReactDOM.render(<MainPage />, document.getElementById('app'));
