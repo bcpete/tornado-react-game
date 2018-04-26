@@ -2,22 +2,17 @@ from tornado import ioloop, web, websocket
 import json
 from gamemaster import GameMaster
 gamemaster = GameMaster()
+connections = []
 
 class EchoWebSocket(websocket.WebSocketHandler):
-
-    def initialize(self, *args, **kwargs):
-        self.game_id = None
-        super().initialize(*args, **kwargs)
 
     def check_origin(self, origin):
         return True
     
     def open(self):
         print('socket opened')
-        games = []
-        for game in gamemaster.games:
-            games.append(game)
-        self.send_message(type="open-games", games=games)
+        connections.append(self)
+        self.send_open_games()
 
     def on_message(self, message):
         data = json.loads(message)
@@ -27,6 +22,7 @@ class EchoWebSocket(websocket.WebSocketHandler):
         if type == "new-game":
             game_id = gamemaster.create_game(self)
             self.send_message(type='new-game', game_id=game_id)
+            self.send_open_games()
         
         elif type == "join_game":
             game_id = int(data.get('game_id'))
@@ -60,6 +56,15 @@ class EchoWebSocket(websocket.WebSocketHandler):
         opponent = gamemaster.get_opponent(data['game_id'], self)
         opponent.send_message(type, **data)
         self.send_message(type, **data)
+
+    def send_open_games(self):
+        games = []
+        for game in gamemaster.games:
+            open_game = gamemaster.get_game(game)
+            if open_game.get('player_2') == None:
+                games.append(game)
+        for connection in connections:
+            connection.send_message(type='open-games', games=games)
 
 def make_app():
     return web.Application([
