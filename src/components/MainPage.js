@@ -18,12 +18,22 @@ export default class MainPage extends React.Component {
 
     ws.onmessage = (message) => {
       const data = JSON.parse(message.data)
-      console.log(data)
-      if(data.data.game_id){
-        this.setState(({ game_id : data.data.game_id }));
-      }else if(data.type === 'open-games'){
-        this.setState(({ open_games : data.data.games }));
-        console.log(this.state.open_games)
+      const { type } = data
+      const { game_id, player, games: open_games, move, message : serverMessage } = data.data
+      switch(type) {
+        case 'new-game':
+          console.log('NEW GAME - GAME ID: ', game_id)
+          this.setState(({ game_id }))
+          break;
+        case 'joined-game': 
+          console.log(serverMessage)
+          this.setState(({ game_id }))
+          break;
+        case 'open-games':
+          this.setState(({ open_games }))
+          break;
+        default:
+          break;
       }
     }
   }
@@ -41,7 +51,7 @@ export default class MainPage extends React.Component {
   render(){
     return (
       <div>
-        <Lobby games={this.state.open_games} handleCreateGame={this.handleCreateGame}/>
+        <Lobby open_games={this.state.open_games} handleCreateGame={this.handleCreateGame}/>
       </div>
     )
   }

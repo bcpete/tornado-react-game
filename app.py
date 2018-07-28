@@ -4,7 +4,7 @@ from gamemaster import GameMaster
 gamemaster = GameMaster()
 connections = []
 
-class EchoWebSocket(websocket.WebSocketHandler):
+class GameWebSocket(websocket.WebSocketHandler):
 
     def check_origin(self, origin):
         return True
@@ -25,7 +25,7 @@ class EchoWebSocket(websocket.WebSocketHandler):
             self.send_open_games()
         
         elif type == "join_game":
-            game_id = int(data.get('game_id'))
+            game_id = data.get('game_id')
             game_to_join = gamemaster.join_game(game_id, self)
             if game_to_join:
                 self.broadcast_message(type="joined_game", game_id=game_to_join, message="Player has joined game #{}".format(game_id))
@@ -33,7 +33,7 @@ class EchoWebSocket(websocket.WebSocketHandler):
                 self.send_message(type="error", message="invalid game id")
 
         elif type == "make_move":
-            game_id = int(data.get('game_id'))
+            game_id = data.get('game_id')
             move = int(data.get('move'))
             game = gamemaster.get_game(game_id)
             if game.get('player_1') == self:
@@ -58,17 +58,17 @@ class EchoWebSocket(websocket.WebSocketHandler):
         self.send_message(type, **data)
 
     def send_open_games(self):
-        games = []
+        open_games = []
         for game in gamemaster.games:
             open_game = gamemaster.get_game(game)
             if open_game.get('player_2') == None:
-                games.append(game)
+                open_games.append(game)
         for connection in connections:
-            connection.send_message(type='open-games', games=games)
+            connection.send_message(type='open-games', games=open_games)
 
 def make_app():
     return web.Application([
-        (r"/ws", EchoWebSocket),
+        (r"/ws", GameWebSocket),
     ])
 
 if __name__ == "__main__":

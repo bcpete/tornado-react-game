@@ -6,7 +6,7 @@ export default class MainPage extends React.Component {
   constructor(props){
     super(props)
     this.state = {
-      game_id: 0
+      game_id: ''
     }
 
   }
@@ -19,12 +19,13 @@ export default class MainPage extends React.Component {
 
     ws.onmessage = (message) => {
       const data = JSON.parse(message.data)
+      console.log(data)
       this.setState(({ game_id : data.data.game_id }))
-      console.log("type: " + data.type)
+      //console.log("type: " + data.type)
       console.log("game_id: " + data.data.game_id)
-      console.log("move: " + data.data.move)
-      console.log("player: " + data.data.player)
-      console.log("message: " + data.data.message)
+      //console.log("move: " + data.data.move)
+      //console.log("player: " + data.data.player)
+      //console.log("message: " + data.data.message)
     }
   }
 
